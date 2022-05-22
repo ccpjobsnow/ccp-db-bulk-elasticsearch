@@ -8,11 +8,9 @@ import java.util.stream.Collectors;
 import com.ccp.decorators.CcpMapDecorator;
 import com.ccp.dependency.injection.CcpEspecification;
 import com.ccp.dependency.injection.CcpImplementation;
-import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
 import com.ccp.especifications.db.bulk.CcpBulkOperation;
-import com.ccp.especifications.db.utils.CcpDbCredentialsGenerator;
-import com.ccp.especifications.http.CcpHttp;
-import com.ccp.especifications.http.CcpHttpHandler;
+import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
+import com.ccp.especifications.db.utils.CcpDbUtils;
 
 @CcpImplementation
 public class CcpDbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
@@ -21,10 +19,7 @@ public class CcpDbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 
 	
 	@CcpEspecification
-	private CcpHttp ccpHttp;
-	
-	@CcpEspecification
-	private CcpDbCredentialsGenerator dbCredentials;
+	private CcpDbUtils dbUtils;
 	
 	@Override
 	public CcpMapDecorator commit(List<CcpMapDecorator> records, CcpBulkOperation bulkOperation, String index) {
@@ -42,17 +37,14 @@ public class CcpDbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 		}
 		
 		StringBuilder body = new StringBuilder();
-		CcpMapDecorator headers = this.dbCredentials.getDatabaseCredentials();
-		String url = headers.getAsString("DB_URL");
 		for (BulkItem bulkItem : this.items) {
 			body.append(bulkItem.content);
 		}
-
-		headers = headers.put("Content-Type", "application/x-ndjson;charset=utf-8");
-
-		CcpHttpHandler http = new CcpHttpHandler(200, this.ccpHttp);
-		CcpMapDecorator executeHttpRequest = http.executeHttpRequest(url, "POST", headers, body.toString());
 		this.items.clear();
+		CcpMapDecorator headers = new CcpMapDecorator().put("Content-Type", "application/x-ndjson;charset=utf-8");
+		CcpMapDecorator executeHttpRequest = this.dbUtils.executeHttpRequest(200, "/_bulk", "POST", headers, body.toString());
 		return executeHttpRequest;
 	}
+	
+	
 }
