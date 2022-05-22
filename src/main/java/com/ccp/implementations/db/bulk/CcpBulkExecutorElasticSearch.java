@@ -10,16 +10,14 @@ import com.ccp.dependency.injection.CcpEspecification;
 import com.ccp.dependency.injection.CcpImplementation;
 import com.ccp.especifications.db.bulk.CcpBulkExecutor;
 import com.ccp.especifications.db.bulk.CcpBulkOperation;
-import com.ccp.especifications.db.credentials.generator.CcpDbCredentialsGenerator;
+import com.ccp.especifications.db.utils.CcpDbCredentialsGenerator;
 import com.ccp.especifications.http.CcpHttp;
 import com.ccp.especifications.http.CcpHttpHandler;
 
 @CcpImplementation
-public class CcpBulkElasticSearch implements CcpBulkExecutor {
+public class CcpBulkExecutorElasticSearch implements CcpBulkExecutor {
 	private final Set<BulkItem> items = new HashSet<>();
 	long lastUpdate = System.currentTimeMillis();
-	public final long maxTimeInMiliSeconds = Long.valueOf(System.getenv("BULK_MAX_TIME"));
-	public final int maxSize = Integer.valueOf(System.getenv("BULK_MAX_SYZE"));
 
 	
 	@CcpEspecification
@@ -35,28 +33,6 @@ public class CcpBulkElasticSearch implements CcpBulkExecutor {
 		this.items.addAll(collect);
 		CcpMapDecorator execute = this.execute();
 		return execute;
-	}
-
-	@Override
-	public CcpMapDecorator append(CcpBulkOperation operation, CcpMapDecorator data, String index, String id) {
-		synchronized(String.class) {
-			this.items.add(new BulkItem(operation, data, index, id));
-			
-			boolean itIsTimeToExecute = this.itIsTimeToExecute();
-			
-			if(itIsTimeToExecute) {
-				return this.execute();
-			}
-			
-			boolean itIsSizeToExecute = this.itIsSizeToExecute();
-			
-			if(itIsSizeToExecute) {
-				return this.execute();
-			}
-			
-			return new CcpMapDecorator();
-			
-		}
 	}
 
 	private CcpMapDecorator execute() {
@@ -79,17 +55,4 @@ public class CcpBulkElasticSearch implements CcpBulkExecutor {
 		this.items.clear();
 		return executeHttpRequest;
 	}
-
-	private boolean itIsSizeToExecute() {
-		boolean itIsSizeToExecute = this.items.size() >= this.maxSize;
-		return itIsSizeToExecute;
-	}
-
-	private boolean itIsTimeToExecute() {
-		long now = System.currentTimeMillis();
-		long enlapsedTime = now - this.lastUpdate;
-		boolean itIsTimeToExecute = enlapsedTime > this.maxTimeInMiliSeconds;
-		return itIsTimeToExecute;
-	}
-
 }
