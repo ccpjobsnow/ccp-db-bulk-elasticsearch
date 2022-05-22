@@ -12,6 +12,7 @@ import com.ccp.dependency.injection.CcpImplementation;
 import com.ccp.especifications.db.bulk.CcpBulkOperation;
 import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
 import com.ccp.especifications.db.utils.CcpDbUtils;
+import com.ccp.especifications.http.CcpHttpResponseType;
 
 @CcpImplementation
 public class CcpDbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
@@ -43,7 +44,7 @@ public class CcpDbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 		}
 		this.items.clear();
 		CcpMapDecorator headers = new CcpMapDecorator().put("Content-Type", "application/x-ndjson;charset=utf-8");
-		CcpMapDecorator executeHttpRequest = this.dbUtils.executeHttpRequest("/_bulk", "POST", 200, body.toString(),  headers);
+		CcpMapDecorator executeHttpRequest = this.dbUtils.executeHttpRequest("/_bulk", "POST", 200, body.toString(),  headers, CcpHttpResponseType.singleRecord);
 		return executeHttpRequest;
 	}
 	
