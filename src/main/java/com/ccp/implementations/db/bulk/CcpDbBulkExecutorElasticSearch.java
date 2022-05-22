@@ -42,7 +42,7 @@ public class CcpDbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 		}
 		this.items.clear();
 		CcpMapDecorator headers = new CcpMapDecorator().put("Content-Type", "application/x-ndjson;charset=utf-8");
-		CcpMapDecorator executeHttpRequest = this.dbUtils.executeHttpRequest(200, "/_bulk", "POST", headers, body.toString());
+		CcpMapDecorator executeHttpRequest = this.dbUtils.executeHttpRequest("/_bulk", "POST", 200, body.toString(),  headers);
 		return executeHttpRequest;
 	}
 	
