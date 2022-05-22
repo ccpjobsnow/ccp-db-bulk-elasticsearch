@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.ccp.constantes.CcpConstants;
 import com.ccp.decorators.CcpMapDecorator;
 import com.ccp.dependency.injection.CcpEspecification;
 import com.ccp.dependency.injection.CcpImplementation;
@@ -33,7 +34,7 @@ public class CcpDbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	private CcpMapDecorator execute() {
 		
 		if(this.items.isEmpty()) {
-			return new CcpMapDecorator();
+			return CcpConstants.emptyJson;
 		}
 		
 		StringBuilder body = new StringBuilder();
