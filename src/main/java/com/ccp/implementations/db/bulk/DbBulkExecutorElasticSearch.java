@@ -8,14 +8,12 @@ import java.util.stream.Collectors;
 import com.ccp.constantes.CcpConstants;
 import com.ccp.decorators.CcpMapDecorator;
 import com.ccp.dependency.injection.CcpEspecification;
-import com.ccp.dependency.injection.CcpImplementation;
 import com.ccp.especifications.db.bulk.CcpBulkOperation;
 import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
 import com.ccp.especifications.db.utils.CcpDbUtils;
 import com.ccp.especifications.http.CcpHttpResponseType;
 
-@CcpImplementation
-public class CcpDbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
+class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	private final Set<BulkItem> items = new HashSet<>();
 	long lastUpdate = System.currentTimeMillis();
 
