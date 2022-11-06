@@ -10,6 +10,7 @@ import com.ccp.decorators.CcpMapDecorator;
 import com.ccp.dependency.injection.CcpEspecification;
 import com.ccp.especifications.db.bulk.CcpBulkOperation;
 import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
+import com.ccp.especifications.db.table.CcpDbTable;
 import com.ccp.especifications.db.utils.CcpDbUtils;
 import com.ccp.especifications.http.CcpHttpResponseType;
 
@@ -22,8 +23,8 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	private CcpDbUtils dbUtils;
 	
 	@Override
-	public CcpMapDecorator commit(List<CcpMapDecorator> records, CcpBulkOperation bulkOperation, String index) {
-		List<BulkItem> collect = records.stream().map(x -> new BulkItem(bulkOperation, x, index, x.getAsString("id"))).collect(Collectors.toList());
+	public CcpMapDecorator commit(List<CcpMapDecorator> records, CcpBulkOperation bulkOperation, CcpDbTable index) {
+		List<BulkItem> collect = records.stream().map(x -> new BulkItem(bulkOperation, x, index.name(), x.getAsString("id"))).collect(Collectors.toList());
 		this.items.clear();
 		this.items.addAll(collect);
 		CcpMapDecorator execute = this.execute();
