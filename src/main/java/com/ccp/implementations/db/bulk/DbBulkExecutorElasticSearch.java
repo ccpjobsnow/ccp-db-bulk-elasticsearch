@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 import com.ccp.constantes.CcpConstants;
 import com.ccp.decorators.CcpMapDecorator;
-import com.ccp.dependency.injection.CcpEspecification;
+import com.ccp.dependency.injection.CcpSpecification;
 import com.ccp.especifications.db.bulk.CcpBulkOperation;
 import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
 import com.ccp.especifications.db.table.CcpDbTable;
@@ -19,7 +19,7 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	long lastUpdate = System.currentTimeMillis();
 
 	
-	@CcpEspecification
+	@CcpSpecification
 	private CcpDbUtils dbUtils;
 	
 	@Override
@@ -34,7 +34,7 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	private CcpMapDecorator execute() {
 		
 		if(this.items.isEmpty()) {
-			return CcpConstants.emptyJson;
+			return CcpConstants.EMPTY_JSON;
 		}
 		
 		StringBuilder body = new StringBuilder();
