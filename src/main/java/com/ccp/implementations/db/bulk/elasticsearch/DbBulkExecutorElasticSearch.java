@@ -1,4 +1,4 @@
-package com.ccp.implementations.db.bulk;
+package com.ccp.implementations.db.bulk.elasticsearch;
 
 import java.util.HashSet;
 import java.util.List;
