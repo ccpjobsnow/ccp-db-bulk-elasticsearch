@@ -1,25 +1,20 @@
 package com.ccp.implementations.db.bulk.elasticsearch;
 
 import com.ccp.decorators.CcpMapDecorator;
-import com.ccp.decorators.CcpStringDecorator;
-import com.ccp.especifications.db.bulk.CcpBulkOperation;
+import com.ccp.especifications.db.bulk.CcpBulkable;
 
 class BulkItem {
-	final CcpBulkOperation operation;
-	final CcpMapDecorator data;
-	final String index;
 	final String id;
-	static final String NEW_LINE = System.getProperty("line.separator");
+	final String index;
 	final String content;
-	public BulkItem(CcpBulkOperation operation, CcpMapDecorator data, String index, String id) {
-		this.operation = operation;
-		this.index = index;
-		this.data = data;
-		this.id = id;
-		String string = "";
-		string += new CcpMapDecorator().put(this.operation.name().toLowerCase(), new CcpMapDecorator().put("_index", this.index).put("_id", this.id)).asJson() + NEW_LINE;
-		string += this.data.asJson() + NEW_LINE;
-		this.content = new CcpStringDecorator(string).text().stripAccents();
+
+	public BulkItem(BulkOperation operation, CcpMapDecorator data, CcpBulkable index) {
+
+		this.content = operation.getContent(index, data);
+		this.id = index.getId(data);
+		this.index = index.name();
+		
+		
 	}
 	
 	@Override
