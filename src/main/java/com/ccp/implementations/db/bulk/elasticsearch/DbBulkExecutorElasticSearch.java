@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 import com.ccp.constantes.CcpConstants;
 import com.ccp.decorators.CcpMapDecorator;
 import com.ccp.dependency.injection.CcpDependencyInject;
-import com.ccp.especifications.db.bulk.CcpBulkable;
 import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
+import com.ccp.especifications.db.utils.CcpDbTable;
 import com.ccp.especifications.db.utils.CcpDbUtils;
 import com.ccp.especifications.http.CcpHttpResponseType;
 
@@ -22,7 +22,7 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	private CcpDbUtils dbUtils;
 	
 	@Override
-	public CcpMapDecorator commit(List<CcpMapDecorator> records, String operation, CcpBulkable bulkable) {
+	public CcpMapDecorator commit(List<CcpMapDecorator> records, String operation, CcpDbTable bulkable) {
 		BulkOperation bulkOperation = BulkOperation.valueOf(operation);
 		List<BulkItem> collect = records.stream().map(data -> new BulkItem(bulkOperation, data, bulkable)).collect(Collectors.toList());
 		this.items.clear();
