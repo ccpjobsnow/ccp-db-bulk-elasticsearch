@@ -1,7 +1,7 @@
 package com.ccp.implementations.db.bulk.elasticsearch;
 
 import com.ccp.decorators.CcpMapDecorator;
-import com.ccp.especifications.db.utils.CcpDbTable;
+import com.ccp.especifications.db.utils.CcpEntity;
 
 enum BulkOperation {
 	delete {
@@ -23,7 +23,7 @@ enum BulkOperation {
 	;
 	static final String NEW_LINE = System.getProperty("line.separator");
 
-	public String getContent(CcpDbTable bulkable, CcpMapDecorator data) {
+	public String getContent(CcpEntity bulkable, CcpMapDecorator data) {
 		
 		CcpMapDecorator values = bulkable.getOnlyExistingFields(data);
 		
@@ -36,7 +36,7 @@ enum BulkOperation {
 		return content;
 	}
 
-	private String getFirstLine(CcpDbTable bulkable, CcpMapDecorator data) {
+	private String getFirstLine(CcpEntity bulkable, CcpMapDecorator data) {
 		String indexName = bulkable.name();
 		String operationName = name();
 		String id = bulkable.getId(data);

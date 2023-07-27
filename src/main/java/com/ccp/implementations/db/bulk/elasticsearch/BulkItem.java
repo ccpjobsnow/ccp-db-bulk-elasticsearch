@@ -1,14 +1,14 @@
 package com.ccp.implementations.db.bulk.elasticsearch;
 
 import com.ccp.decorators.CcpMapDecorator;
-import com.ccp.especifications.db.utils.CcpDbTable;
+import com.ccp.especifications.db.utils.CcpEntity;
 
 class BulkItem {
 	final String id;
 	final String index;
 	final String content;
 
-	public BulkItem(BulkOperation operation, CcpMapDecorator data, CcpDbTable index) {
+	public BulkItem(BulkOperation operation, CcpMapDecorator data, CcpEntity index) {
 
 		this.content = operation.getContent(index, data);
 		this.id = index.getId(data);

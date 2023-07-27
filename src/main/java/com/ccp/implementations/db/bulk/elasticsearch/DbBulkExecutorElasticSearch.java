@@ -8,9 +8,11 @@ import java.util.stream.Collectors;
 import com.ccp.constantes.CcpConstants;
 import com.ccp.decorators.CcpMapDecorator;
 import com.ccp.dependency.injection.CcpDependencyInject;
+import com.ccp.especifications.db.bulk.CcpBulkAudit;
 import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
-import com.ccp.especifications.db.utils.CcpDbTable;
 import com.ccp.especifications.db.utils.CcpDbUtils;
+import com.ccp.especifications.db.utils.CcpEntity;
+import com.ccp.especifications.db.utils.CcpOperationType;
 import com.ccp.especifications.http.CcpHttpResponseType;
 
 class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
@@ -22,13 +24,14 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	private CcpDbUtils dbUtils;
 	
 	@Override
-	public CcpMapDecorator commit(List<CcpMapDecorator> records, String operation, CcpDbTable bulkable) {
-		BulkOperation bulkOperation = BulkOperation.valueOf(operation);
-		List<BulkItem> collect = records.stream().map(data -> new BulkItem(bulkOperation, data, bulkable)).collect(Collectors.toList());
+	public CcpMapDecorator commit(List<CcpMapDecorator> records, CcpOperationType operation, CcpEntity entity, CcpBulkAudit audit) {
+		BulkOperation bulkOperation = BulkOperation.valueOf(operation.name());
+		List<BulkItem> collect = records.stream().map(data -> new BulkItem(bulkOperation, data, entity)).collect(Collectors.toList());
 		this.items.clear();
 		this.items.addAll(collect);
-		CcpMapDecorator execute = this.execute();
-		return execute;
+		CcpMapDecorator bulkResult = this.execute();
+		audit.commit(records, bulkResult);
+		return bulkResult;
 	}
 
 	private CcpMapDecorator execute() {
