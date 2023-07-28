@@ -30,7 +30,7 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 		this.items.clear();
 		this.items.addAll(collect);
 		CcpMapDecorator bulkResult = this.execute();
-		audit.commit(records, bulkResult);
+		audit.commit(records,operation, bulkResult);
 		return bulkResult;
 	}
 
