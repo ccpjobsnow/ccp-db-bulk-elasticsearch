@@ -14,6 +14,7 @@ import com.ccp.especifications.db.utils.CcpDbUtils;
 import com.ccp.especifications.db.utils.CcpEntity;
 import com.ccp.especifications.db.utils.CcpOperationType;
 import com.ccp.especifications.http.CcpHttpResponseType;
+import com.ccp.exceptions.db.bulk.BulkErrors;
 
 class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	private final Set<BulkItem> items = new HashSet<>();
@@ -45,9 +46,21 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 			failedRecords.add(auditObject);
 		}
 		
-		
 		this.commit(succedRecords, operation, auditEntity);
-		this.commit(succedRecords, operation, errorEntity);
+		this.saveErrors(operation, errorEntity, failedRecords);
+	}
+
+
+	private void saveErrors(CcpOperationType operation, CcpEntity errorEntity, List<CcpMapDecorator> failedRecords) {
+		
+		boolean hasNoErrors = failedRecords.isEmpty();
+		
+		if(hasNoErrors) {
+			return;
+		}
+		
+		this.commit(failedRecords, operation, errorEntity);
+		throw new BulkErrors(failedRecords);
 	}
 
 	
@@ -59,7 +72,7 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 		
 		CcpMapDecorator json = new ArrayList<>(records).stream().filter(record -> entity.getId(record).equals(id)).findFirst().get();
 		CcpMapDecorator mappedError = new CcpMapDecorator().put("date", System.currentTimeMillis()).put("operation", operation.name())
-				.put("index", index).put("id", id).put("json", json).put("status", status).putAll(errorDetails)
+				.put("entity", index).put("id", id).put("json", json).put("status", status).putAll(errorDetails)
 				;
 		return mappedError;
 	}
