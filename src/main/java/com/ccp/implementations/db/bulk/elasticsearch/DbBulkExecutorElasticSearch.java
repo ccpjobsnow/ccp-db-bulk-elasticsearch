@@ -25,33 +25,23 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	private CcpDbUtils dbUtils;
 	
 
-	public void audit(List<CcpMapDecorator> records, CcpOperationType operation, CcpMapDecorator bulkResult, CcpEntity entity, CcpEntity auditEntity, CcpEntity errorEntity) {
+	public void audit(CcpEntity entity, CcpEntity auditEntity, CcpMapDecorator errorsAndSuccess,  CcpOperationType operation) {
 
-		List<CcpMapDecorator> failedRecords = new ArrayList<>();
-		List<CcpMapDecorator> succedRecords = new ArrayList<>();
-
-		List<CcpMapDecorator> items = bulkResult.getAsMapList("items").stream().map(x -> x.getInternalMap(operation.name())).collect(Collectors.toList());
+		boolean isNotAuditable = entity.isAuditable() == false;
 		
-		for (CcpMapDecorator item : items) {
-			
-			CcpMapDecorator auditObject = this.getAuditObject(entity, records, item, operation);
-
-			boolean hasNoError = item.containsKey("error") == false;
-			
-			if(hasNoError) {
-				succedRecords.add(auditObject);
-				continue;
-			}
-			
-			failedRecords.add(auditObject);
+		if(isNotAuditable) {
+			return;
 		}
 		
+		List<CcpMapDecorator> succedRecords = errorsAndSuccess.getAsMapList("succedRecords");
 		this.commit(succedRecords, operation, auditEntity);
-		this.saveErrors(operation, errorEntity, failedRecords);
 	}
 
 
-	private void saveErrors(CcpOperationType operation, CcpEntity errorEntity, List<CcpMapDecorator> failedRecords) {
+
+	public void saveErrors(CcpEntity entity, CcpEntity errorEntity, CcpMapDecorator errorsAndSuccess,  CcpOperationType operation) {
+
+		List<CcpMapDecorator> failedRecords = errorsAndSuccess.getAsMapList("failedRecords");
 		
 		boolean hasNoErrors = failedRecords.isEmpty();
 		
@@ -60,6 +50,7 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 		}
 		
 		this.commit(failedRecords, operation, errorEntity);
+		
 		throw new BulkErrors(failedRecords);
 	}
 
@@ -88,7 +79,31 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 		this.items.clear();
 		this.items.addAll(collect);
 		CcpMapDecorator bulkResult = this.execute();
-		return bulkResult;
+		
+		CcpMapDecorator result = new CcpMapDecorator();
+
+		List<CcpMapDecorator> failedRecords = new ArrayList<>();
+		List<CcpMapDecorator> succedRecords = new ArrayList<>();
+
+		List<CcpMapDecorator> items = bulkResult.getAsMapList("items").stream()
+				.map(x -> x.getInternalMap(operation.name())).collect(Collectors.toList());
+
+		for (CcpMapDecorator item : items) {
+
+			CcpMapDecorator auditObject = this.getAuditObject(entity, records, item, operation);
+
+			boolean hasNoError = item.containsKey("error") == false;
+
+			if (hasNoError) {
+				succedRecords.add(auditObject);
+				continue;
+			}
+
+			failedRecords.add(auditObject);
+		}
+		result = result.put("failedRecords", failedRecords).put("succedRecords", succedRecords);
+
+		return result;
 	}
 
 	private CcpMapDecorator execute() {
