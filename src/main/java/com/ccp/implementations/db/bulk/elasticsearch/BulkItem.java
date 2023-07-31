@@ -5,28 +5,28 @@ import com.ccp.especifications.db.utils.CcpEntity;
 
 class BulkItem {
 	final String id;
-	final String index;
+	final String entity;
 	final String content;
 
-	public BulkItem(BulkOperation operation, CcpMapDecorator data, CcpEntity index) {
+	public BulkItem(BulkOperation operation, CcpMapDecorator data, CcpEntity entity) {
 
-		this.content = operation.getContent(index, data);
-		this.id = index.getId(data);
-		this.index = index.name();
+		this.content = operation.getContent(entity, data);
+		this.id = entity.getId(data);
+		this.entity = entity.name();
 		
 		
 	}
 	
 	@Override
 	public int hashCode() {
-		return (this.index + this.id).hashCode();
+		return (this.entity + this.id).hashCode();
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
 		try {
 			BulkItem other = (BulkItem)obj;
-			if(other.index.equals(this.index) == false) {
+			if(other.entity.equals(this.entity) == false) {
 				return false;
 			}
 			if(other.id.equals(this.id) == false) {

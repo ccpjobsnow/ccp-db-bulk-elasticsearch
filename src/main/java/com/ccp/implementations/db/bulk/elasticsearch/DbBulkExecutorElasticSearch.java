@@ -57,15 +57,22 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	
 	private CcpMapDecorator getAuditObject(CcpEntity entity, List<CcpMapDecorator> records, CcpMapDecorator error, CcpOperationType operation) {
 		String id = error.getAsString("_id");
-		String index = error.getAsString("_index");
+		String entityName = error.getAsString("_index");
 		Integer status = error.getAsIntegerNumber("status");
 		CcpMapDecorator errorDetails = error.getInternalMap("error").renameKey("type", "errorType").getSubMap("errorType", "reason");
 		
-		CcpMapDecorator json = new ArrayList<>(records).stream().filter(record -> entity.getId(record).equals(id)).findFirst().get();
+		CcpMapDecorator json = new ArrayList<>(records).stream().filter(record -> this.filter(entity, id, record)).findFirst().get();
 		CcpMapDecorator mappedError = new CcpMapDecorator().put("date", System.currentTimeMillis()).put("operation", operation.name())
-				.put("entity", index).put("id", id).put("json", json).put("status", status).putAll(errorDetails)
+				.put("entity", entityName).put("id", id).put("json", json).put("status", status).putAll(errorDetails)
 				;
 		return mappedError;
+	}
+
+
+
+	private boolean filter(CcpEntity entity, String id, CcpMapDecorator record) {
+		String id2 = entity.getId(record);
+		return id2.equals(id);
 	}
 	
 	@Override

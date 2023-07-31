@@ -36,12 +36,12 @@ enum BulkOperation {
 		return content;
 	}
 
-	private String getFirstLine(CcpEntity bulkable, CcpMapDecorator data) {
-		String indexName = bulkable.name();
+	private String getFirstLine(CcpEntity entity, CcpMapDecorator data) {
+		String entityName = entity.name();
 		String operationName = name();
-		String id = bulkable.getId(data);
+		String id = entity.getId(data);
 		String firstLine = new CcpMapDecorator()
-				.putSubKey(operationName, "_index", indexName)
+				.putSubKey(operationName, "_index", entityName)
 				.putSubKey(operationName, "_id", id)
 				.asJson();
 		return firstLine;
