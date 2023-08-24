@@ -21,8 +21,6 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	long lastUpdate = System.currentTimeMillis();
 
 	
-	private CcpDbUtils dbUtils = CcpInstanceInjection.getInstance(CcpDbUtils.class);
-	
 
 	public void audit(CcpEntity entity, CcpEntity auditEntity, CcpMapDecorator errorsAndSuccess,  CcpOperationType operation) {
 
@@ -124,7 +122,8 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 		}
 		this.items.clear();
 		CcpMapDecorator headers = new CcpMapDecorator().put("Content-Type", "application/x-ndjson;charset=utf-8");
-		CcpMapDecorator executeHttpRequest = this.dbUtils.executeHttpRequest("/_bulk", "POST", 200, body.toString(),  headers, CcpHttpResponseType.singleRecord);
+		CcpDbUtils dbUtils = CcpInstanceInjection.getInstance(CcpDbUtils.class);
+		CcpMapDecorator executeHttpRequest = dbUtils.executeHttpRequest("/_bulk", "POST", 200, body.toString(),  headers, CcpHttpResponseType.singleRecord);
 		return executeHttpRequest;
 	}
 
