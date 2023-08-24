@@ -1,11 +1,11 @@
 package com.ccp.implementations.db.bulk.elasticsearch;
 
-import com.ccp.dependency.injection.CcpModuleExporter;
+import com.ccp.dependency.injection.CcpInstanceProvider;
 
-public class Bulk implements CcpModuleExporter {
+public class Bulk implements CcpInstanceProvider {
 
 	@Override
-	public Object export() {
+	public Object getInstance() {
 		return new DbBulkExecutorElasticSearch();
 	}
 

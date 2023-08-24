@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import com.ccp.constantes.CcpConstants;
 import com.ccp.decorators.CcpMapDecorator;
-import com.ccp.dependency.injection.CcpDependencyInject;
+import com.ccp.dependency.injection.CcpInstanceInjection;
 import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
 import com.ccp.especifications.db.utils.CcpDbUtils;
 import com.ccp.especifications.db.utils.CcpEntity;
@@ -21,8 +21,7 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	long lastUpdate = System.currentTimeMillis();
 
 	
-	@CcpDependencyInject
-	private CcpDbUtils dbUtils;
+	private CcpDbUtils dbUtils = CcpInstanceInjection.getInstance(CcpDbUtils.class);
 	
 
 	public void audit(CcpEntity entity, CcpEntity auditEntity, CcpMapDecorator errorsAndSuccess,  CcpOperationType operation) {
