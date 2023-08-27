@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import com.ccp.constantes.CcpConstants;
 import com.ccp.decorators.CcpMapDecorator;
-import com.ccp.dependency.injection.CcpInstanceInjection;
+import com.ccp.dependency.injection.CcpDependencyInjection;
 import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
 import com.ccp.especifications.db.utils.CcpDbUtils;
 import com.ccp.especifications.db.utils.CcpEntity;
@@ -122,7 +122,7 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 		}
 		this.items.clear();
 		CcpMapDecorator headers = new CcpMapDecorator().put("Content-Type", "application/x-ndjson;charset=utf-8");
-		CcpDbUtils dbUtils = CcpInstanceInjection.getInstance(CcpDbUtils.class);
+		CcpDbUtils dbUtils = CcpDependencyInjection.getDependency(CcpDbUtils.class);
 		CcpMapDecorator executeHttpRequest = dbUtils.executeHttpRequest("/_bulk", "POST", 200, body.toString(),  headers, CcpHttpResponseType.singleRecord);
 		return executeHttpRequest;
 	}
