@@ -10,19 +10,19 @@ import com.ccp.constantes.CcpConstants;
 import com.ccp.decorators.CcpMapDecorator;
 import com.ccp.dependency.injection.CcpDependencyInjection;
 import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
-import com.ccp.especifications.db.utils.CcpDbUtils;
+import com.ccp.especifications.db.utils.CcpDbRequester;
 import com.ccp.especifications.db.utils.CcpEntity;
-import com.ccp.especifications.db.utils.CcpOperationType;
+import com.ccp.especifications.db.utils.CcpEntityOperationType;
 import com.ccp.especifications.http.CcpHttpResponseType;
-import com.ccp.exceptions.db.bulk.BulkErrors;
+import com.ccp.exceptions.db.bulk.CcpBulkErrors;
 
-class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
+class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 	private final Set<BulkItem> items = new HashSet<>();
 	long lastUpdate = System.currentTimeMillis();
 
 	
 
-	public void audit(CcpEntity entity, CcpEntity auditEntity, CcpMapDecorator errorsAndSuccess,  CcpOperationType operation) {
+	public void audit(CcpEntity entity, CcpEntity auditEntity, CcpMapDecorator errorsAndSuccess,  CcpEntityOperationType operation) {
 
 		boolean isNotAuditable = entity.isAuditable() == false;
 		
@@ -36,7 +36,7 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 
 
 
-	public void saveErrors(CcpEntity entity, CcpEntity errorEntity, CcpMapDecorator errorsAndSuccess,  CcpOperationType operation) {
+	public void saveErrors(CcpEntity entity, CcpEntity errorEntity, CcpMapDecorator errorsAndSuccess,  CcpEntityOperationType operation) {
 
 		List<CcpMapDecorator> failedRecords = errorsAndSuccess.getAsMapList("failedRecords");
 		
@@ -48,11 +48,11 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 		
 		this.commit(failedRecords, operation, errorEntity);
 		
-		throw new BulkErrors(failedRecords);
+		throw new CcpBulkErrors(failedRecords);
 	}
 
 	
-	private CcpMapDecorator getAuditObject(CcpEntity entity, List<CcpMapDecorator> records, CcpMapDecorator error, CcpOperationType operation) {
+	private CcpMapDecorator getAuditObject(CcpEntity entity, List<CcpMapDecorator> records, CcpMapDecorator error, CcpEntityOperationType operation) {
 		String id = error.getAsString("_id");
 		String entityName = error.getAsString("_index");
 		Integer status = error.getAsIntegerNumber("status");
@@ -73,7 +73,7 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 	}
 	
 	@Override
-	public CcpMapDecorator commit(List<CcpMapDecorator> records, CcpOperationType operation, CcpEntity entity) {
+	public CcpMapDecorator commit(List<CcpMapDecorator> records, CcpEntityOperationType operation, CcpEntity entity) {
 		if(records.isEmpty()) {
 			return new CcpMapDecorator();
 		}
@@ -122,7 +122,7 @@ class DbBulkExecutorElasticSearch implements CcpDbBulkExecutor {
 		}
 		this.items.clear();
 		CcpMapDecorator headers = new CcpMapDecorator().put("Content-Type", "application/x-ndjson;charset=utf-8");
-		CcpDbUtils dbUtils = CcpDependencyInjection.getDependency(CcpDbUtils.class);
+		CcpDbRequester dbUtils = CcpDependencyInjection.getDependency(CcpDbRequester.class);
 		CcpMapDecorator executeHttpRequest = dbUtils.executeHttpRequest("/_bulk", "POST", 200, body.toString(),  headers, CcpHttpResponseType.singleRecord);
 		return executeHttpRequest;
 	}
