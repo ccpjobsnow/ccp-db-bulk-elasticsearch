@@ -12,12 +12,12 @@ enum BulkOperation {
 	}, update {
 		@Override
 		String getSecondLine(CcpMapDecorator data) {
-			return new CcpMapDecorator().put("doc", data).asJson();
+			return new CcpMapDecorator().put("doc", data).asUgglyJson();
 		}
 	}, create {
 		@Override
 		String getSecondLine(CcpMapDecorator data) {
-			return data.asJson();
+			return data.asUgglyJson();
 		}
 	}
 	;
@@ -43,7 +43,7 @@ enum BulkOperation {
 		String firstLine = new CcpMapDecorator()
 				.putSubKey(operationName, "_index", entityName)
 				.putSubKey(operationName, "_id", id)
-				.asJson();
+				.asUgglyJson();
 		return firstLine;
 	}
 	
