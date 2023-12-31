@@ -1,6 +1,6 @@
 package com.ccp.implementations.db.bulk.elasticsearch;
 
-import com.ccp.decorators.CcpMapDecorator;
+import com.ccp.decorators.CcpJsonRepresentation;
 import com.ccp.especifications.db.utils.CcpEntity;
 
 class BulkItem {
@@ -8,7 +8,7 @@ class BulkItem {
 	final String entity;
 	final String content;
 
-	public BulkItem(BulkOperation operation, CcpMapDecorator data, CcpEntity entity) {
+	public BulkItem(BulkOperation operation, CcpJsonRepresentation data, CcpEntity entity) {
 
 		this.content = operation.getContent(entity, data);
 		this.id = entity.getId(data);

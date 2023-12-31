@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.ccp.constantes.CcpConstants;
-import com.ccp.decorators.CcpMapDecorator;
+import com.ccp.decorators.CcpJsonRepresentation;
 import com.ccp.dependency.injection.CcpDependencyInjection;
 import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
 import com.ccp.especifications.db.utils.CcpDbRequester;
@@ -22,7 +22,7 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 
 	
 
-	public void audit(CcpEntity entity, CcpEntity auditEntity, CcpMapDecorator errorsAndSuccess,  CcpEntityOperationType operation) {
+	public void audit(CcpEntity entity, CcpEntity auditEntity, CcpJsonRepresentation errorsAndSuccess,  CcpEntityOperationType operation) {
 
 		boolean isNotAuditable = entity.isAuditable() == false;
 		
@@ -30,15 +30,15 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 			return;
 		}
 		
-		List<CcpMapDecorator> succedRecords = errorsAndSuccess.getAsMapList("succedRecords");
+		List<CcpJsonRepresentation> succedRecords = errorsAndSuccess.getJsonList("succedRecords");
 		this.commit(succedRecords, operation, auditEntity);
 	}
 
 
 
-	public void saveErrors(CcpEntity entity, CcpEntity errorEntity, CcpMapDecorator errorsAndSuccess,  CcpEntityOperationType operation) {
+	public void saveErrors(CcpEntity entity, CcpEntity errorEntity, CcpJsonRepresentation errorsAndSuccess,  CcpEntityOperationType operation) {
 
-		List<CcpMapDecorator> failedRecords = errorsAndSuccess.getAsMapList("failedRecords");
+		List<CcpJsonRepresentation> failedRecords = errorsAndSuccess.getJsonList("failedRecords");
 		
 		boolean hasNoErrors = failedRecords.isEmpty();
 		
@@ -52,14 +52,14 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 	}
 
 	
-	private CcpMapDecorator getAuditObject(CcpEntity entity, List<CcpMapDecorator> records, CcpMapDecorator error, CcpEntityOperationType operation) {
+	private CcpJsonRepresentation getAuditObject(CcpEntity entity, List<CcpJsonRepresentation> records, CcpJsonRepresentation error, CcpEntityOperationType operation) {
 		String id = error.getAsString("_id");
 		String entityName = error.getAsString("_index");
 		Integer status = error.getAsIntegerNumber("status");
-		CcpMapDecorator errorDetails = error.getInternalMap("error").renameKey("type", "errorType").getSubMap("errorType", "reason");
+		CcpJsonRepresentation errorDetails = error.getInnerJson("error").renameKey("type", "errorType").getJsonPiece("errorType", "reason");
 		
-		CcpMapDecorator json = new ArrayList<>(records).stream().filter(record -> this.filter(entity, id, record)).findFirst().get();
-		CcpMapDecorator mappedError = new CcpMapDecorator().put("date", System.currentTimeMillis()).put("operation", operation.name())
+		CcpJsonRepresentation json = new ArrayList<>(records).stream().filter(record -> this.filter(entity, id, record)).findFirst().get();
+		CcpJsonRepresentation mappedError = CcpConstants.EMPTY_JSON.put("date", System.currentTimeMillis()).put("operation", operation.name())
 				.put("entity", entityName).put("id", id).put("json", json).put("status", status).putAll(errorDetails)
 				;
 		return mappedError;
@@ -67,34 +67,34 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 
 
 
-	private boolean filter(CcpEntity entity, String id, CcpMapDecorator record) {
+	private boolean filter(CcpEntity entity, String id, CcpJsonRepresentation record) {
 		String id2 = entity.getId(record);
 		return id2.equals(id);
 	}
 	
 	@Override
-	public CcpMapDecorator commit(List<CcpMapDecorator> records, CcpEntityOperationType operation, CcpEntity entity) {
+	public CcpJsonRepresentation commit(List<CcpJsonRepresentation> records, CcpEntityOperationType operation, CcpEntity entity) {
 		if(records.isEmpty()) {
-			return new CcpMapDecorator();
+			return CcpConstants.EMPTY_JSON;
 		}
 		
 		BulkOperation bulkOperation = BulkOperation.valueOf(operation.name());
 		List<BulkItem> collect = records.stream().map(data -> new BulkItem(bulkOperation, data, entity)).collect(Collectors.toList());
 		this.items.clear();
 		this.items.addAll(collect);
-		CcpMapDecorator bulkResult = this.execute();
+		CcpJsonRepresentation bulkResult = this.execute();
 		
-		CcpMapDecorator result = new CcpMapDecorator();
+		CcpJsonRepresentation result = CcpConstants.EMPTY_JSON;
 
-		List<CcpMapDecorator> failedRecords = new ArrayList<>();
-		List<CcpMapDecorator> succedRecords = new ArrayList<>();
+		List<CcpJsonRepresentation> failedRecords = new ArrayList<>();
+		List<CcpJsonRepresentation> succedRecords = new ArrayList<>();
 
-		List<CcpMapDecorator> items = bulkResult.getAsMapList("items").stream()
-				.map(x -> x.getInternalMap(operation.name())).collect(Collectors.toList());
+		List<CcpJsonRepresentation> items = bulkResult.getJsonList("items").stream()
+				.map(x -> x.getInnerJson(operation.name())).collect(Collectors.toList());
 
-		for (CcpMapDecorator item : items) {
+		for (CcpJsonRepresentation item : items) {
 
-			CcpMapDecorator auditObject = this.getAuditObject(entity, records, item, operation);
+			CcpJsonRepresentation auditObject = this.getAuditObject(entity, records, item, operation);
 
 			boolean hasNoError = item.containsKey("error") == false;
 
@@ -110,7 +110,7 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 		return result;
 	}
 
-	private CcpMapDecorator execute() {
+	private CcpJsonRepresentation execute() {
 		
 		if(this.items.isEmpty()) {
 			return CcpConstants.EMPTY_JSON;
@@ -121,9 +121,9 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 			body.append(bulkItem.content);
 		}
 		this.items.clear();
-		CcpMapDecorator headers = new CcpMapDecorator().put("Content-Type", "application/x-ndjson;charset=utf-8");
+		CcpJsonRepresentation headers = CcpConstants.EMPTY_JSON.put("Content-Type", "application/x-ndjson;charset=utf-8");
 		CcpDbRequester dbUtils = CcpDependencyInjection.getDependency(CcpDbRequester.class);
-		CcpMapDecorator executeHttpRequest = dbUtils.executeHttpRequest("/_bulk", "POST", 200, body.toString(),  headers, CcpHttpResponseType.singleRecord);
+		CcpJsonRepresentation executeHttpRequest = dbUtils.executeHttpRequest("/_bulk", "POST", 200, body.toString(),  headers, CcpHttpResponseType.singleRecord);
 		return executeHttpRequest;
 	}
 

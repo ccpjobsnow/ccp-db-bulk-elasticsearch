@@ -1,31 +1,32 @@
 package com.ccp.implementations.db.bulk.elasticsearch;
 
-import com.ccp.decorators.CcpMapDecorator;
+import com.ccp.constantes.CcpConstants;
+import com.ccp.decorators.CcpJsonRepresentation;
 import com.ccp.especifications.db.utils.CcpEntity;
 
 enum BulkOperation {
 	delete {
 		@Override
-		String getSecondLine(CcpMapDecorator data) {
+		String getSecondLine(CcpJsonRepresentation data) {
 			return "";
 		}
 	}, update {
 		@Override
-		String getSecondLine(CcpMapDecorator data) {
-			return new CcpMapDecorator().put("doc", data).asUgglyJson();
+		String getSecondLine(CcpJsonRepresentation data) {
+			return CcpConstants.EMPTY_JSON.put("doc", data).asUgglyJson();
 		}
 	}, create {
 		@Override
-		String getSecondLine(CcpMapDecorator data) {
+		String getSecondLine(CcpJsonRepresentation data) {
 			return data.asUgglyJson();
 		}
 	}
 	;
 	static final String NEW_LINE = System.getProperty("line.separator");
 
-	public String getContent(CcpEntity bulkable, CcpMapDecorator data) {
+	public String getContent(CcpEntity bulkable, CcpJsonRepresentation data) {
 		
-		CcpMapDecorator values = bulkable.getOnlyExistingFields(data);
+		CcpJsonRepresentation values = bulkable.getOnlyExistingFields(data);
 		
 		String firstLine = this.getFirstLine(bulkable, values);
 		
@@ -36,17 +37,17 @@ enum BulkOperation {
 		return content;
 	}
 
-	private String getFirstLine(CcpEntity entity, CcpMapDecorator data) {
+	private String getFirstLine(CcpEntity entity, CcpJsonRepresentation data) {
 		String entityName = entity.name();
 		String operationName = name();
 		String id = entity.getId(data);
-		String firstLine = new CcpMapDecorator()
+		String firstLine = CcpConstants.EMPTY_JSON
 				.putSubKey(operationName, "_index", entityName)
 				.putSubKey(operationName, "_id", id)
 				.asUgglyJson();
 		return firstLine;
 	}
 	
-	abstract String getSecondLine(CcpMapDecorator data);
+	abstract String getSecondLine(CcpJsonRepresentation data);
 	
 }
