@@ -6,17 +6,17 @@ import com.ccp.especifications.db.utils.CcpEntity;
 
 enum BulkOperation {
 	delete {
-		@Override
+		
 		String getSecondLine(CcpJsonRepresentation data) {
 			return "";
 		}
 	}, update {
-		@Override
+		
 		String getSecondLine(CcpJsonRepresentation data) {
 			return CcpConstants.EMPTY_JSON.put("doc", data).asUgglyJson();
 		}
 	}, create {
-		@Override
+		
 		String getSecondLine(CcpJsonRepresentation data) {
 			return data.asUgglyJson();
 		}

@@ -17,12 +17,12 @@ class BulkItem {
 		
 	}
 	
-	@Override
+	
 	public int hashCode() {
 		return (this.entity + this.id).hashCode();
 	}
 	
-	@Override
+	
 	public boolean equals(Object obj) {
 		try {
 			BulkItem other = (BulkItem)obj;

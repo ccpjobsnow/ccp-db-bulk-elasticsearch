@@ -72,7 +72,7 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 		return id2.equals(id);
 	}
 	
-	@Override
+	
 	public CcpJsonRepresentation commit(List<CcpJsonRepresentation> records, CcpEntityOperationType operation, CcpEntity entity) {
 		if(records.isEmpty()) {
 			return CcpConstants.EMPTY_JSON;
