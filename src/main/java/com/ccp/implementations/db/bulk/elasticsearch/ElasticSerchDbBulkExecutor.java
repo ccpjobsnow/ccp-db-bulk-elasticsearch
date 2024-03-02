@@ -30,7 +30,7 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 			return;
 		}
 		
-		List<CcpJsonRepresentation> succedRecords = errorsAndSuccess.getJsonList("succedRecords");
+		List<CcpJsonRepresentation> succedRecords = errorsAndSuccess.getAsJsonList("succedRecords");
 		this.commit(succedRecords, operation, auditEntity);
 	}
 
@@ -38,7 +38,7 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 
 	public void saveErrors(CcpEntity entity, CcpEntity errorEntity, CcpJsonRepresentation errorsAndSuccess,  CcpEntityOperationType operation) {
 
-		List<CcpJsonRepresentation> failedRecords = errorsAndSuccess.getJsonList("failedRecords");
+		List<CcpJsonRepresentation> failedRecords = errorsAndSuccess.getAsJsonList("failedRecords");
 		
 		boolean hasNoErrors = failedRecords.isEmpty();
 		
@@ -89,7 +89,7 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 		List<CcpJsonRepresentation> failedRecords = new ArrayList<>();
 		List<CcpJsonRepresentation> succedRecords = new ArrayList<>();
 
-		List<CcpJsonRepresentation> items = bulkResult.getJsonList("items").stream()
+		List<CcpJsonRepresentation> items = bulkResult.getAsJsonList("items").stream()
 				.map(x -> x.getInnerJson(operation.name())).collect(Collectors.toList());
 
 		for (CcpJsonRepresentation item : items) {
