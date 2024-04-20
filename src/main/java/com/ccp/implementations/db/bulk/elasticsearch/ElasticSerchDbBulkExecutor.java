@@ -123,7 +123,7 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
 		this.items.clear();
 		CcpJsonRepresentation headers = CcpConstants.EMPTY_JSON.put("Content-Type", "application/x-ndjson;charset=utf-8");
 		CcpDbRequester dbUtils = CcpDependencyInjection.getDependency(CcpDbRequester.class);
-		CcpJsonRepresentation executeHttpRequest = dbUtils.executeHttpRequest("/_bulk", "POST", 200, body.toString(),  headers, CcpHttpResponseType.singleRecord);
+		CcpJsonRepresentation executeHttpRequest = dbUtils.executeHttpRequest("elasticSearchBulk", "/_bulk", "POST", 200, body.toString(),  headers, CcpHttpResponseType.singleRecord);
 		return executeHttpRequest;
 	}
 
