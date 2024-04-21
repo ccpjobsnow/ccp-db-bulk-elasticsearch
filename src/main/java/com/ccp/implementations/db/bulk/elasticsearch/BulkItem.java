@@ -1,23 +1,29 @@
 package com.ccp.implementations.db.bulk.elasticsearch;
 
-import com.ccp.decorators.CcpJsonRepresentation;
-import com.ccp.especifications.db.utils.CcpEntity;
+import com.ccp.especifications.db.bulk.CcpBulkItem;
 
 class BulkItem {
 	final String id;
 	final String entity;
 	final String content;
 
-	public BulkItem(BulkOperation operation, CcpJsonRepresentation data, CcpEntity entity) {
+	public BulkItem(CcpBulkItem item) {
 
-		this.content = operation.getContent(entity, data);
-		this.id = entity.getId(data);
-		this.entity = entity.name();
-		
-		
+		String name = item.operation.name();
+		BulkOperation valueOf = BulkOperation.valueOf(name);
+		String content = valueOf.getContent(item);
+		this.entity = item.entity.getEntityName();
+		this.content = content;
+		this.id = item.id;
 	}
 	
 	
+	@Override
+	public String toString() {
+		return "BulkItem [id=" + id + ", entity=" + entity + ", content=" + content + "]";
+	}
+
+
 	public int hashCode() {
 		return (this.entity + this.id).hashCode();
 	}
@@ -26,10 +32,16 @@ class BulkItem {
 	public boolean equals(Object obj) {
 		try {
 			BulkItem other = (BulkItem)obj;
-			if(other.entity.equals(this.entity) == false) {
+			
+			boolean differentEntity = other.entity.equals(this.entity) == false;
+			
+			if(differentEntity) {
 				return false;
 			}
-			if(other.id.equals(this.id) == false) {
+			
+			boolean differentId = other.id.equals(this.id) == false;
+			
+			if(differentId) {
 				return false;
 			}
 			return true;

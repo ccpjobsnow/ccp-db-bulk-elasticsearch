@@ -1,133 +1,76 @@
 package com.ccp.implementations.db.bulk.elasticsearch;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.ccp.constantes.CcpConstants;
 import com.ccp.decorators.CcpJsonRepresentation;
 import com.ccp.dependency.injection.CcpDependencyInjection;
+import com.ccp.especifications.db.bulk.CcpBulkItem;
 import com.ccp.especifications.db.bulk.CcpDbBulkExecutor;
 import com.ccp.especifications.db.utils.CcpDbRequester;
-import com.ccp.especifications.db.utils.CcpEntity;
-import com.ccp.especifications.db.utils.CcpEntityOperationType;
 import com.ccp.especifications.http.CcpHttpResponseType;
-import com.ccp.exceptions.db.bulk.CcpBulkErrors;
 
-class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor {
-	private final Set<BulkItem> items = new HashSet<>();
-	long lastUpdate = System.currentTimeMillis();
-
+public class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor{
 	
-
-	public void audit(CcpEntity entity, CcpEntity auditEntity, CcpJsonRepresentation errorsAndSuccess,  CcpEntityOperationType operation) {
-
-		boolean isNotAuditable = entity.isAuditable() == false;
-		
-		if(isNotAuditable) {
-			return;
-		}
-		
-		List<CcpJsonRepresentation> succedRecords = errorsAndSuccess.getAsJsonList("succedRecords");
-		this.commit(succedRecords, operation, auditEntity);
+	private List<CcpBulkItem> bulkItems = new ArrayList<>();
+	
+	public CcpDbBulkExecutor addRecord(CcpBulkItem bulkItem) {
+		this.bulkItems.add(bulkItem);
+		return this;
 	}
 
-
-
-	public void saveErrors(CcpEntity entity, CcpEntity errorEntity, CcpJsonRepresentation errorsAndSuccess,  CcpEntityOperationType operation) {
-
-		List<CcpJsonRepresentation> failedRecords = errorsAndSuccess.getAsJsonList("failedRecords");
-		
-		boolean hasNoErrors = failedRecords.isEmpty();
-		
-		if(hasNoErrors) {
-			return;
-		}
-		
-		this.commit(failedRecords, operation, errorEntity);
-		
-		throw new CcpBulkErrors(failedRecords);
+	public List<CcpJsonRepresentation> getFailedRecords(List<CcpJsonRepresentation> auditRecords) {
+		List<CcpJsonRepresentation> collect = auditRecords.stream().filter(item -> item.containsKey("error")).collect(Collectors.toList());
+		return collect;
 	}
 
-	
-	private CcpJsonRepresentation getAuditObject(CcpEntity entity, List<CcpJsonRepresentation> records, CcpJsonRepresentation error, CcpEntityOperationType operation) {
-		String id = error.getAsString("_id");
-		String entityName = error.getAsString("_index");
-		Integer status = error.getAsIntegerNumber("status");
-		CcpJsonRepresentation errorDetails = error.getInnerJson("error").renameKey("type", "errorType").getJsonPiece("errorType", "reason");
+	public List<CcpJsonRepresentation> getSuccedRecords(List<CcpJsonRepresentation> auditRecords) {
+		List<CcpJsonRepresentation> collect = auditRecords.stream()
+				.filter(item -> item.containsKey("error") == false)
+				.filter(item -> item.getAsBoolean("auditable"))
+				.collect(Collectors.toList());
+		return collect;
+	}
+
+	public CcpJsonRepresentation getAuditRecord(CcpBulkItem bulkItem, CcpJsonRepresentation bulkResult) {
+		Integer status = bulkResult.getAsIntegerNumber("status");
 		
-		CcpJsonRepresentation json = new ArrayList<>(records).stream().filter(record -> this.filter(entity, id, record)).findFirst().get();
-		CcpJsonRepresentation mappedError = CcpConstants.EMPTY_JSON.put("date", System.currentTimeMillis()).put("operation", operation.name())
-				.put("entity", entityName).put("id", id).put("json", json).put("status", status).putAll(errorDetails)
+		CcpJsonRepresentation recordFound = bulkResult.getAsJsonList("items").stream().filter(item -> item.getAsString("_id").equals(bulkItem.id)).findFirst().orElseThrow(() -> new RuntimeException("" + bulkItem + " could not be found"));
+		CcpJsonRepresentation result = recordFound.getInnerJson(bulkItem.operation.name());
+		CcpJsonRepresentation errorDetails = result.getInnerJson("error").renameKey("type", "errorType").getJsonPiece("errorType", "reason");
+		boolean auditable = bulkItem.entity.isAuditable();
+		CcpJsonRepresentation json = bulkItem.getJson();
+		CcpJsonRepresentation auditRecord = CcpConstants.EMPTY_JSON
+				.put("date", System.currentTimeMillis())
+				.put("auditable", auditable)
+				.put("status", status)
+				.putAll(errorDetails)
+				.putAll(json)
 				;
-		return mappedError;
+		return auditRecord;
 	}
 
-
-
-	private boolean filter(CcpEntity entity, String id, CcpJsonRepresentation record) {
-		String id2 = entity.getId(record);
-		return id2.equals(id);
-	}
-	
-	
-	public CcpJsonRepresentation commit(List<CcpJsonRepresentation> records, CcpEntityOperationType operation, CcpEntity entity) {
-		if(records.isEmpty()) {
-			return CcpConstants.EMPTY_JSON;
-		}
-		
-		BulkOperation bulkOperation = BulkOperation.valueOf(operation.name());
-		List<BulkItem> collect = records.stream().map(data -> new BulkItem(bulkOperation, data, entity)).collect(Collectors.toList());
-		this.items.clear();
-		this.items.addAll(collect);
-		CcpJsonRepresentation bulkResult = this.execute();
-		
-		CcpJsonRepresentation result = CcpConstants.EMPTY_JSON;
-
-		List<CcpJsonRepresentation> failedRecords = new ArrayList<>();
-		List<CcpJsonRepresentation> succedRecords = new ArrayList<>();
-
-		List<CcpJsonRepresentation> items = bulkResult.getAsJsonList("items").stream()
-				.map(x -> x.getInnerJson(operation.name())).collect(Collectors.toList());
-
-		for (CcpJsonRepresentation item : items) {
-
-			CcpJsonRepresentation auditObject = this.getAuditObject(entity, records, item, operation);
-
-			boolean hasNoError = item.containsKey("error") == false;
-
-			if (hasNoError) {
-				succedRecords.add(auditObject);
-				continue;
-			}
-
-			failedRecords.add(auditObject);
-		}
-		result = result.put("failedRecords", failedRecords).put("succedRecords", succedRecords);
-
-		return result;
+	public List<CcpBulkItem> getBulkItems() {
+		return this.bulkItems;
 	}
 
-	private CcpJsonRepresentation execute() {
-		
-		if(this.items.isEmpty()) {
+	public CcpJsonRepresentation getBulkResult() {
+		if(this.bulkItems.isEmpty()) {
 			return CcpConstants.EMPTY_JSON;
 		}
 		
 		StringBuilder body = new StringBuilder();
-		for (BulkItem bulkItem : this.items) {
+		List<BulkItem> bulkItems = this.bulkItems.stream().map( x -> new BulkItem(x)).collect(Collectors.toList());
+		for (BulkItem bulkItem : bulkItems) {
 			body.append(bulkItem.content);
 		}
-		this.items.clear();
+		this.bulkItems.clear();
 		CcpJsonRepresentation headers = CcpConstants.EMPTY_JSON.put("Content-Type", "application/x-ndjson;charset=utf-8");
 		CcpDbRequester dbUtils = CcpDependencyInjection.getDependency(CcpDbRequester.class);
 		CcpJsonRepresentation executeHttpRequest = dbUtils.executeHttpRequest("elasticSearchBulk", "/_bulk", "POST", 200, body.toString(),  headers, CcpHttpResponseType.singleRecord);
 		return executeHttpRequest;
 	}
 
-
-	
-	
 }

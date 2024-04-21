@@ -2,6 +2,7 @@ package com.ccp.implementations.db.bulk.elasticsearch;
 
 import com.ccp.constantes.CcpConstants;
 import com.ccp.decorators.CcpJsonRepresentation;
+import com.ccp.especifications.db.bulk.CcpBulkItem;
 import com.ccp.especifications.db.utils.CcpEntity;
 
 enum BulkOperation {
@@ -24,11 +25,11 @@ enum BulkOperation {
 	;
 	static final String NEW_LINE = System.getProperty("line.separator");
 
-	public String getContent(CcpEntity bulkable, CcpJsonRepresentation data) {
+	public String getContent(CcpBulkItem item) {
+//item.entity, item.json
+		CcpJsonRepresentation values = item.entity.getOnlyExistingFields(item.json);
 		
-		CcpJsonRepresentation values = bulkable.getOnlyExistingFields(data);
-		
-		String firstLine = this.getFirstLine(bulkable, values);
+		String firstLine = this.getFirstLine(item.entity, values);
 		
 		String secondLine = this.getSecondLine(values);
 		
@@ -38,7 +39,7 @@ enum BulkOperation {
 	}
 
 	private String getFirstLine(CcpEntity entity, CcpJsonRepresentation data) {
-		String entityName = entity.name();
+		String entityName = entity.getEntityName();
 		String operationName = name();
 		String id = entity.getId(data);
 		String firstLine = CcpConstants.EMPTY_JSON
