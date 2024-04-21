@@ -35,13 +35,13 @@ public class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor{
 	}
 
 	public CcpJsonRepresentation getAuditRecord(CcpBulkItem bulkItem, CcpJsonRepresentation bulkResult) {
-		Integer status = bulkResult.getAsIntegerNumber("status");
 		
 		CcpJsonRepresentation recordFound = bulkResult.getAsJsonList("items").stream().filter(item -> item.getAsString("_id").equals(bulkItem.id)).findFirst().orElseThrow(() -> new RuntimeException("" + bulkItem + " could not be found"));
 		CcpJsonRepresentation result = recordFound.getInnerJson(bulkItem.operation.name());
-		CcpJsonRepresentation errorDetails = result.getInnerJson("error").renameKey("type", "errorType").getJsonPiece("errorType", "reason");
 		boolean auditable = bulkItem.entity.isAuditable();
 		CcpJsonRepresentation json = bulkItem.getJson();
+		Integer status = bulkResult.getAsIntegerNumber("status");
+		CcpJsonRepresentation errorDetails = result.getInnerJson("error").renameKey("type", "errorType").getJsonPiece("errorType", "reason");
 		CcpJsonRepresentation auditRecord = CcpConstants.EMPTY_JSON
 				.put("date", System.currentTimeMillis())
 				.put("auditable", auditable)
