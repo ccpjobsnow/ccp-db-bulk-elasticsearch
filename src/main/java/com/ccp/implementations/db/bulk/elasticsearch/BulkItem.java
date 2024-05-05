@@ -18,7 +18,7 @@ class BulkItem {
 	}
 	
 	
-	@Override
+	
 	public String toString() {
 		return "BulkItem [id=" + id + ", entity=" + entity + ", content=" + content + "]";
 	}
