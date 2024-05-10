@@ -12,16 +12,21 @@ class ElasticSearchBulkOperationResult implements CcpBulkOperationResult{
 
 	private final CcpBulkItem bulkItem;
 	
+	private final Integer status;
+	
 	public ElasticSearchBulkOperationResult(CcpBulkItem bulkItem, List<CcpJsonRepresentation> result) {
-		this.bulkItem = bulkItem;
-		String operationName = bulkItem.operation.name();
+
 		String entityName = bulkItem.entity.getEntityName();
-		CcpJsonRepresentation errorDetails = result.stream().map(x -> x.getInnerJson(operationName))
+		String operationName = bulkItem.operation.name();
+
+		CcpJsonRepresentation details = result.stream().map(x -> x.getInnerJson(operationName))
 		.filter(x -> x.getAsString("_entity").equals(entityName))
 		.filter(x -> x.getAsString("_id").equals(bulkItem.id))
-		.map(x -> x.getInnerJson("error"))
 		.findFirst().get();
-		this.errorDetails = errorDetails;
+
+		this.status = details.getAsIntegerNumber("status"); 
+		this.errorDetails = details.getInnerJson("error");
+		this.bulkItem = bulkItem;
 	}
 	
 	public CcpJsonRepresentation getErrorDetails() {
@@ -37,10 +42,8 @@ class ElasticSearchBulkOperationResult implements CcpBulkOperationResult{
 		return empty == false;
 	}
 
-	@Override
 	public int status() {
-		// TODO Auto-generated method stub
-		return 0;
+		return this.status;
 	}
 
 	
