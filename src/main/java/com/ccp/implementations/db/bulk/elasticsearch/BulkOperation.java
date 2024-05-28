@@ -8,18 +8,18 @@ import com.ccp.especifications.db.utils.CcpEntity;
 enum BulkOperation {
 	delete {
 		
-		String getSecondLine(CcpJsonRepresentation data) {
+		String getSecondLine(CcpJsonRepresentation json) {
 			return "";
 		}
 	}, update {
 		
-		String getSecondLine(CcpJsonRepresentation data) {
-			return CcpConstants.EMPTY_JSON.put("doc", data).asUgglyJson();
+		String getSecondLine(CcpJsonRepresentation json) {
+			return CcpConstants.EMPTY_JSON.put("doc", json).asUgglyJson();
 		}
 	}, create {
 		
-		String getSecondLine(CcpJsonRepresentation data) {
-			return data.asUgglyJson();
+		String getSecondLine(CcpJsonRepresentation json) {
+			return json.asUgglyJson();
 		}
 	}
 	;
@@ -27,21 +27,21 @@ enum BulkOperation {
 
 	public String getContent(CcpBulkItem item) {
 //item.entity, item.json
-		CcpJsonRepresentation values = item.entity.getOnlyExistingFields(item.json);
+		CcpJsonRepresentation json = item.entity.getOnlyExistingFields(item.json);
 		
-		String firstLine = this.getFirstLine(item.entity, values);
+		String firstLine = this.getFirstLine(item.entity, json);
 		
-		String secondLine = this.getSecondLine(values);
+		String secondLine = this.getSecondLine(json);
 		
 		String content = firstLine + NEW_LINE + secondLine + NEW_LINE;
 	
 		return content;
 	}
 
-	private String getFirstLine(CcpEntity entity, CcpJsonRepresentation data) {
+	private String getFirstLine(CcpEntity entity, CcpJsonRepresentation json) {
 		String entityName = entity.getEntityName();
 		String operationName = name();
-		String id = entity.getId(data);
+		String id = entity.calculateId(json);
 		String firstLine = CcpConstants.EMPTY_JSON
 				.putSubKey(operationName, "_index", entityName)
 				.putSubKey(operationName, "_id", id)
@@ -49,6 +49,6 @@ enum BulkOperation {
 		return firstLine;
 	}
 	
-	abstract String getSecondLine(CcpJsonRepresentation data);
+	abstract String getSecondLine(CcpJsonRepresentation json);
 	
 }
