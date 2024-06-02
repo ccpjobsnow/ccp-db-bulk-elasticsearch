@@ -43,8 +43,8 @@ enum BulkOperation {
 		String operationName = name();
 		String id = entity.calculateId(json);
 		String firstLine = CcpConstants.EMPTY_JSON
-				.putSubKey(operationName, "_index", entityName)
-				.putSubKey(operationName, "_id", id)
+				.addToItem(operationName, "_index", entityName)
+				.addToItem(operationName, "_id", id)
 				.asUgglyJson();
 		return firstLine;
 	}
