@@ -1,3 +1,4 @@
+
 package com.ccp.implementations.db.bulk.elasticsearch;
 
 import com.ccp.constantes.CcpConstants;

@@ -17,6 +17,7 @@ class ElasticSearchBulkOperationResult implements CcpBulkOperationResult{
 	public ElasticSearchBulkOperationResult(CcpBulkItem bulkItem, List<CcpJsonRepresentation> result) {
 
 		String entityName = bulkItem.entity.getEntityName();
+		
 		String operationName = bulkItem.operation.name();
 
 		CcpJsonRepresentation details = result.stream().map(x -> x.getInnerJson(operationName))
