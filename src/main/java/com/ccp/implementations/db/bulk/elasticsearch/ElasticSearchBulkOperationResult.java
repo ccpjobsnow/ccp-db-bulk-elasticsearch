@@ -79,9 +79,9 @@ class ElasticSearchBulkOperationResult implements CcpBulkOperationResult{
 	public CcpJsonRepresentation asMap() {
 		CcpJsonRepresentation asMap = this.bulkItem.asMap();
 		CcpJsonRepresentation put = CcpConstants.EMPTY_JSON
-				.put("errorDetails", this.errorDetails)
-				.put("status", this.status)
 				.put("bulkItem", asMap)
+				.put("status", this.status)
+				.put("errorDetails", this.errorDetails)
 				;
 		return put;
 	}

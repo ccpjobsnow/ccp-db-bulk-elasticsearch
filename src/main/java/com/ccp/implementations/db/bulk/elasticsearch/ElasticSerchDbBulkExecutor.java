@@ -15,11 +15,16 @@ import com.ccp.especifications.http.CcpHttpResponseType;
 
 class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor{
 	
-	private List<CcpBulkItem> bulkItems = new ArrayList<>();
+	private final List<CcpBulkItem> bulkItems;
 	
+	public ElasticSerchDbBulkExecutor(List<CcpBulkItem> bulkItems) {
+		this.bulkItems = bulkItems;
+	}
+
 	public CcpDbBulkExecutor addRecord(CcpBulkItem bulkItem) {
 		this.bulkItems.add(bulkItem);
-		return this;
+		ElasticSerchDbBulkExecutor response = new ElasticSerchDbBulkExecutor(this.bulkItems);
+		return response;
 	}
 
 	public List<CcpBulkOperationResult> getBulkOperationResult() {
@@ -42,8 +47,10 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor{
 		return collect;
 	}
 
-	public List<CcpBulkItem> getBulkItems() {
-		return this.bulkItems;
+	public CcpDbBulkExecutor clearRecords() {
+		this.bulkItems.clear();
+		ElasticSerchDbBulkExecutor response = new ElasticSerchDbBulkExecutor(this.bulkItems);
+		return response;
 	}
 
 	
