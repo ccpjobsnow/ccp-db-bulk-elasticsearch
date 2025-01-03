@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.ccp.constantes.CcpConstants;
+import com.ccp.constantes.CcpOtherConstants;
 import com.ccp.decorators.CcpJsonRepresentation;
 import com.ccp.dependency.injection.CcpDependencyInjection;
 import com.ccp.especifications.db.bulk.CcpBulkItem;
@@ -78,7 +78,7 @@ class ElasticSearchBulkOperationResult implements CcpBulkOperationResult{
 
 	public CcpJsonRepresentation asMap() {
 		CcpJsonRepresentation asMap = this.bulkItem.asMap();
-		CcpJsonRepresentation put = CcpConstants.EMPTY_JSON
+		CcpJsonRepresentation put = CcpOtherConstants.EMPTY_JSON
 				.put("bulkItem", asMap)
 				.put("status", this.status)
 				.put("errorDetails", this.errorDetails)

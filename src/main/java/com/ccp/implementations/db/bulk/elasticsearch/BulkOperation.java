@@ -1,7 +1,7 @@
 
 package com.ccp.implementations.db.bulk.elasticsearch;
 
-import com.ccp.constantes.CcpConstants;
+import com.ccp.constantes.CcpOtherConstants;
 import com.ccp.decorators.CcpJsonRepresentation;
 import com.ccp.especifications.db.bulk.CcpBulkItem;
 import com.ccp.especifications.db.utils.CcpEntity;
@@ -15,7 +15,7 @@ enum BulkOperation {
 	}, update {
 		
 		String getSecondLine(CcpJsonRepresentation json) {
-			return CcpConstants.EMPTY_JSON.put("doc", json).asUgglyJson();
+			return CcpOtherConstants.EMPTY_JSON.put("doc", json).asUgglyJson();
 		}
 	}, create {
 		
@@ -43,7 +43,7 @@ enum BulkOperation {
 		String entityName = entity.getEntityName();
 		String operationName = name();
 		String id = entity.calculateId(json);
-		String firstLine = CcpConstants.EMPTY_JSON
+		String firstLine = CcpOtherConstants.EMPTY_JSON
 				.addToItem(operationName, "_index", entityName)
 				.addToItem(operationName, "_id", id)
 				.asUgglyJson();
