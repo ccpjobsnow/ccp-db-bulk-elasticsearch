@@ -31,7 +31,7 @@ class ElasticSearchBulkOperationResult implements CcpBulkOperationResult{
 		List<CcpJsonRepresentation> filteredById = map.stream().filter(x -> x.getAsString(fieldNameToId).equals(bulkItem.id)).collect(Collectors.toList());
 		
 		if(filteredById.isEmpty()) {
-			String format = String.format( "Id '%s' not found. Complete list: " + result, bulkItem.id, entityName);
+			String format = String.format( "Id '%s' from entity '%s' not found.", bulkItem.id, entityName);
 			throw new RuntimeException(format);
 		}
 		Optional<CcpJsonRepresentation> findFirst = filteredById.stream()

@@ -28,7 +28,7 @@ enum BulkOperation {
 
 	public String getContent(CcpBulkItem item) {
 //item.entity, item.json
-		CcpJsonRepresentation json = item.entity.getOnlyExistingFields(item.json);
+		CcpJsonRepresentation json = item.entity.getOnlyExistingFieldsAndHandledJson(item.json);
 		
 		String firstLine = this.getFirstLine(item.entity, json);
 		
