@@ -4,7 +4,6 @@ package com.ccp.implementations.db.bulk.elasticsearch;
 import com.ccp.constantes.CcpOtherConstants;
 import com.ccp.decorators.CcpJsonRepresentation;
 import com.ccp.especifications.db.bulk.CcpBulkItem;
-import com.ccp.especifications.db.utils.CcpEntity;
 
 enum BulkOperation {
 	delete {
@@ -27,25 +26,22 @@ enum BulkOperation {
 	static final String NEW_LINE = System.getProperty("line.separator");
 
 	public String getContent(CcpBulkItem item) {
-//item.entity, item.json
-		CcpJsonRepresentation json = item.entity.getOnlyExistingFieldsAndHandledJson(item.json);
+
+		String firstLine = this.getFirstLine(item);
 		
-		String firstLine = this.getFirstLine(item.entity, json);
-		
-		String secondLine = this.getSecondLine(json);
+		String secondLine = this.getSecondLine(item.json);
 		
 		String content = firstLine + NEW_LINE + secondLine + NEW_LINE;
 	
 		return content;
 	}
 
-	private String getFirstLine(CcpEntity entity, CcpJsonRepresentation json) {
-		String entityName = entity.getEntityName();
-		String operationName = name();
-		String id = entity.calculateId(json);
+	private String getFirstLine(CcpBulkItem item) {
+		String entityName = item.entity.getEntityName();
+		String operationName = this.name();
 		String firstLine = CcpOtherConstants.EMPTY_JSON
 				.addToItem(operationName, "_index", entityName)
-				.addToItem(operationName, "_id", id)
+				.addToItem(operationName, "_id", item.id)
 				.asUgglyJson();
 		return firstLine;
 	}
