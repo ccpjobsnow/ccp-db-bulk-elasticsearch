@@ -30,7 +30,7 @@ class ElasticSerchDbBulkExecutor implements CcpDbBulkExecutor{
 	public List<CcpBulkOperationResult> getBulkOperationResult() {
 		if(this.bulkItems.isEmpty()) {
 			return new ArrayList<>();
-		}
+		} 
 		
 		StringBuilder body = new StringBuilder();
 		List<BulkItem> bulkItems = this.bulkItems.stream().map( x -> new BulkItem(x)).collect(Collectors.toList());

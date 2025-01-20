@@ -39,7 +39,7 @@ class ElasticSearchBulkOperationResult implements CcpBulkOperationResult{
 
 			;
 			
-			String format = String.format( "Id '%s' from entity '%s' not found.", bulkItem.id, entityName);
+			String format = String.format( "Id '%s' from entity '%s' not found.", bulkItem.id, entityName); 
 			throw new RuntimeException(format);
 		}
 		Optional<CcpJsonRepresentation> findFirst = filteredById.stream()
