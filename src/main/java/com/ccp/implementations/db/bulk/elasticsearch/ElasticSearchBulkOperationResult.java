@@ -10,6 +10,7 @@ import com.ccp.dependency.injection.CcpDependencyInjection;
 import com.ccp.especifications.db.bulk.CcpBulkItem;
 import com.ccp.especifications.db.bulk.CcpBulkOperationResult;
 import com.ccp.especifications.db.utils.CcpDbRequester;
+import com.ccp.exceptions.db.bulk.CcpDbBulkItemNotFound;
 
 class ElasticSearchBulkOperationResult implements CcpBulkOperationResult{
 	
@@ -39,8 +40,7 @@ class ElasticSearchBulkOperationResult implements CcpBulkOperationResult{
 
 			;
 			
-			String format = String.format( "Id '%s' from entity '%s' not found.", bulkItem.id, entityName); 
-			throw new RuntimeException(format);
+			throw new CcpDbBulkItemNotFound(bulkItem);
 		}
 		Optional<CcpJsonRepresentation> findFirst = filteredById.stream()
 		.filter(x -> x.getAsString(fieldNameToEntity).equals(entityName))
@@ -49,8 +49,7 @@ class ElasticSearchBulkOperationResult implements CcpBulkOperationResult{
 		boolean idNotFoundInTheEntity = findFirst.isPresent() == false;
 		
 		if(idNotFoundInTheEntity) {
-			String format = String.format( "Id '%s' not found in the entity '%s' Complete list: " + result, bulkItem.id, entityName);
-			throw new RuntimeException(format);
+			throw new CcpDbBulkItemNotFound(bulkItem, result);
 		}
 		
 		CcpJsonRepresentation details = findFirst.get();
